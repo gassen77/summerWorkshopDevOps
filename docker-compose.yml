@@ -1,35 +1,30 @@
-version: '3.3'
-
+version: '3'
 services:
-  spring-app:
-    image: ghassenhammouda/summerworkshop:latest
-    ports:
-      - "8089:8089"
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/facturation?useSSL=false&serverTimezone=UTC
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=root
-    depends_on:
-      - db
-    networks:
-      - backend
-    volumes:
-      - ./spring-app/logs:/var/log/spring-app
-      # Add more volumes as needed
-
-  db:
+  mysqldb:
+    container_name: mysqldb
+    restart: unless-stopped
     image: mysql:8.0
     environment:
       - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=root
+      - MYSQL_DATABASE=facturation
+      - MYSQL_PASSWORD=root
     ports:
-      - "3306:3306"
-    networks:
-      - backend
+      - 3306:3306
     volumes:
-      - ./mysql/data:/var/lib/mysql
-      # Add more volumes as needed
+      - ./mysql-data:/var/lib/mysql
 
-networks:
-  backend:
-    driver: bridge
+  facturation:
+    container_name : facturation
+    build:
+      context: /var/lib/jenkins/workspace/devops pipeline
+      dockerfile: Dockerfile
+    depends_on:
+      - mysqldb
+    ports:
+      - 8089:8089
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/facturation?createDatabaseIfNotExist=true&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
