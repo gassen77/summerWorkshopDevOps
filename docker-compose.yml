@@ -1,0 +1,35 @@
+version: '3.3'
+
+services:
+  spring-app:
+    image: ghassenhammouda/summerworkshop:latest
+    ports:
+      - "8089:8089"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/facturation?useSSL=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - db
+    networks:
+      - backend
+    volumes:
+      - ./spring-app/logs:/var/log/spring-app
+      # Add more volumes as needed
+
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=root
+    ports:
+      - "3306:3306"
+    networks:
+      - backend
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+      # Add more volumes as needed
+
+networks:
+  backend:
+    driver: bridge
